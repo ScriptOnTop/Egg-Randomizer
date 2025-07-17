@@ -1,204 +1,245 @@
--- MADE BY SCRIPT ON TOP HUB SLIMEY
+-- 🛠️ MADE BY SCRIPT ON TOP HUB SLIMEY - IMPROVED BY GPT
+
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
+local Debris = game:GetService("Debris")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
+math.randomseed(tick())
+
+-- 🐾 Pet Lists by Egg Type
 local PetLists = {
-	["Common Egg"] = { "Dog", "Golden Lab", "Bunny" },
-	["Mythical Egg"] = { "Grey Mouse", "Brown Mouse", "Squirrel", "Red Giant Ant", "Red Fox" },
-	["Bug Egg"] = { "Caterpillar", "Snail", "Giant Ant", "Praying Mantis", "Dragonfly" },
-	["Common Summer Egg"] = { "Starfish", "Seagull", "Crab" },
-	["Rare Summer Egg"] = { "Flamingo", "Toucan", "Sea Turtle", "Orangutan", "Seal" },
-	["Paradise Egg"] = { "Ostrich", "Peacock", "Capybara", "Scarlet Macaw", "Mimic Octopus" },
-	["Bee Egg"] = { "Bee", "Honey Bee", "Bear Bee", "Petal Bee", "Queen Bee" },
-	["Oasis Egg"] = { "Meerkat", "Sand Snake", "Axolotl", "Hyacinth Macaw", "Fennec Fox" },
-	["Anti Bee Egg"] = { "Wasp", "Tarantula Hawk", "Moth", "Butterfly", "Disco Bee" },
-	["Night Egg"] = { "Frog", "Mole", "Hedgehog", "Raccoon", "Night Owl", "Echo Frog" },
-	["Dinosaur Egg"] = { "Raptor", "Triceratops", "Stegosaurus", "Pterodactyl", "Brontosaurus", "T-Rex" }
+    ["Common Egg"] = { "Dog", "Golden Lab", "Bunny" },
+    ["Mythical Egg"] = { "Grey Mouse", "Brown Mouse", "Squirrel", "Red Giant Ant", "Red Fox" },
+    ["Bug Egg"] = { "Caterpillar", "Snail", "Giant Ant", "Praying Mantis", "Dragonfly" },
+    ["Common Summer Egg"] = { "Starfish", "Seagull", "Crab" },
+    ["Rare Summer Egg"] = { "Flamingo", "Toucan", "Sea Turtle", "Orangutan", "Seal" },
+    ["Paradise Egg"] = { "Ostrich", "Peacock", "Capybara", "Scarlet Macaw", "Mimic Octopus" },
+    ["Bee Egg"] = { "Bee", "Honey Bee", "Bear Bee", "Petal Bee", "Queen Bee" },
+    ["Oasis Egg"] = { "Meerkat", "Sand Snake", "Axolotl", "Hyacinth Macaw", "Fennec Fox" },
+    ["Anti Bee Egg"] = { "Wasp", "Tarantula Hawk", "Moth", "Butterfly", "Disco Bee" },
+    ["Night Egg"] = { "Frog", "Mole", "Hedgehog", "Raccoon", "Night Owl", "Echo Frog" },
+    ["Dinosaur Egg"] = { "Raptor", "Triceratops", "Stegosaurus", "Pterodactyl", "Brontosaurus", "T-Rex" }
 }
 
 local rggJackpotPets = {
-	["Raccoon"] = true, ["Red Fox"] = true, ["Dragonfly"] = true,
-	["Mimic Octopus"] = true, ["Queen Bee"] = true, ["Fennec Fox"] = true,
-	["Butterfly"] = true, ["Disco Bee"] = true, ["T-Rex"] = true
+    ["Raccoon"] = true, ["Red Fox"] = true, ["Dragonfly"] = true,
+    ["Mimic Octopus"] = true, ["Queen Bee"] = true, ["Fennec Fox"] = true,
+    ["Butterfly"] = true, ["Disco Bee"] = true, ["T-Rex"] = true
 }
 
+-- 🕹️ State
 local autoRoll = false
 local cooldownTime = 30
 local isCooldown = false
 local currentCountdown = 0
+
+-- 🌈 UI Elements
 local mainGui, timerLabel, autoToggle
 
+-- 🔊 Sounds
+local function playSound(id, volume)
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://" .. id
+    sound.Volume = volume
+    sound.Parent = PlayerGui
+    sound:Play()
+    Debris:AddItem(sound, 3)
+end
+
+-- 🧲 Pet Selection
 local function getRandomPet(list)
-	return list[math.random(1, #list)]
+    local jackpotChance = 0.005
+    local pick = list[math.random(1, #list)]
+    if rggJackpotPets[pick] and math.random() > jackpotChance then
+        repeat
+            pick = list[math.random(1, #list)]
+        until not rggJackpotPets[pick]
+    end
+    return pick
 end
 
+-- 🎉 Jackpot UI + Sound
 local function jackpotNotify()
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(0, 300, 0, 50)
-	label.Position = UDim2.new(0.5, -150, 0.5, -100)
-	label.AnchorPoint = Vector2.new(0.5, 0.5)
-	label.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
-	label.TextColor3 = Color3.fromRGB(0, 0, 0)
-	label.Text = "🎉 JACKPOT PET 🎉"
-	label.Font = Enum.Font.GothamBold
-	label.TextScaled = true
-	label.Parent = PlayerGui
-	task.delay(3, function() if label then label:Destroy() end end)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, 300, 0, 50)
+    label.Position = UDim2.new(0.5, -150, 0.5, -100)
+    label.AnchorPoint = Vector2.new(0.5, 0.5)
+    label.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+    label.TextColor3 = Color3.fromRGB(0, 0, 0)
+    label.Text = "✨ DIVINE PET UNLOCKED! ✨"
+    label.Font = Enum.Font.GothamBlack
+    label.TextScaled = true
+    label.Parent = PlayerGui
+    playSound("9121609452", 2) -- Jackpot Sound
+    task.delay(3, function()
+        if label then label:Destroy() end
+    end)
 end
 
+-- 🔁 Egg Update with Sound
 local function updateEggPet(part, eggName)
-	local gui = part:FindFirstChild("EggLabel")
-	if not gui then return end
-	local petLabel = gui:FindFirstChild("PetLabel")
-	if not petLabel then return end
+    local gui = part:FindFirstChild("EggLabel")
+    if not gui then return end
+    local petLabel = gui:FindFirstChild("PetLabel")
+    if not petLabel then return end
 
-	local pet = getRandomPet(PetLists[eggName])
-	petLabel.Text = pet
+    local pet = getRandomPet(PetLists[eggName])
+    petLabel.Text = pet
 
-	if rggJackpotPets[pet] then
-		jackpotNotify()
-		task.spawn(function()
-			while isCooldown do
-				petLabel.TextColor3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
-				task.wait(0.1)
-			end
-		end)
-	else
-		petLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
-	end
+    playSound("12222225", 1.5) -- Roll Sound
+
+    if rggJackpotPets[pet] then
+        jackpotNotify()
+        task.spawn(function()
+            while isCooldown do
+                petLabel.TextColor3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+                task.wait(0.1)
+            end
+        end)
+    else
+        petLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+    end
 end
 
+-- 📡 Egg Detection
 local function scanEggs()
-	for _, obj in ipairs(Workspace:GetDescendants()) do
-		if PetLists[obj.Name] then
-			local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
-			if part and not part:FindFirstChild("EggLabel") then
-				local bb = Instance.new("BillboardGui", part)
-				bb.Name = "EggLabel"
-				bb.Adornee = part
-				bb.Size = UDim2.new(0, 120, 0, 70)
-				bb.StudsOffset = Vector3.new(0, 3, 0)
-				bb.AlwaysOnTop = true
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if PetLists[obj.Name] then
+            local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
+            if part and not part:FindFirstChild("EggLabel") then
+                local bb = Instance.new("BillboardGui", part)
+                bb.Name = "EggLabel"
+                bb.Adornee = part
+                bb.Size = UDim2.new(0, 120, 0, 70)
+                bb.StudsOffset = Vector3.new(0, 3, 0)
+                bb.AlwaysOnTop = true
 
-				local eggText = Instance.new("TextLabel", bb)
-				eggText.Size = UDim2.new(1, 0, 0.33, 0)
-				eggText.BackgroundTransparency = 1
-				eggText.Text = obj.Name
-				eggText.Font = Enum.Font.GothamBold
-				eggText.TextScaled = true
-				eggText.TextColor3 = Color3.fromRGB(255, 255, 0)
+                local eggText = Instance.new("TextLabel", bb)
+                eggText.Size = UDim2.new(1, 0, 0.4, 0)
+                eggText.BackgroundTransparency = 1
+                eggText.Text = obj.Name
+                eggText.Font = Enum.Font.GothamBold
+                eggText.TextScaled = true
+                eggText.TextColor3 = Color3.fromRGB(255, 255, 0)
 
-				local petText = Instance.new("TextLabel", bb)
-				petText.Name = "PetLabel"
-				petText.Size = UDim2.new(1, 0, 0.33, 0)
-				petText.Position = UDim2.new(0, 0, 0.33, 0)
-				petText.BackgroundTransparency = 1
-				petText.Font = Enum.Font.GothamBold
-				petText.TextScaled = true
-				petText.TextColor3 = Color3.fromRGB(0, 255, 255)
-				petText.Text = getRandomPet(PetLists[obj.Name])
-			end
-		end
-	end
+                local petText = Instance.new("TextLabel", bb)
+                petText.Name = "PetLabel"
+                petText.Size = UDim2.new(1, 0, 0.6, 0)
+                petText.Position = UDim2.new(0, 0, 0.4, 0)
+                petText.BackgroundTransparency = 1
+                petText.Font = Enum.Font.GothamBold
+                petText.TextScaled = true
+                petText.TextColor3 = Color3.fromRGB(0, 255, 255)
+                petText.Text = getRandomPet(PetLists[obj.Name])
+            end
+        end
+    end
 end
 
+-- ⏳ Cooldown Handling
 local function startCooldown()
-	if isCooldown then return end
-	isCooldown = true
-	currentCountdown = cooldownTime
+    if isCooldown then return end
+    isCooldown = true
+    currentCountdown = cooldownTime
 
-	for _, obj in ipairs(Workspace:GetDescendants()) do
-		if PetLists[obj.Name] then
-			local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
-			if part then updateEggPet(part, obj.Name) end
-		end
-	end
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if PetLists[obj.Name] then
+            local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
+            if part then updateEggPet(part, obj.Name) end
+        end
+    end
 
-	while currentCountdown > 0 do
-		timerLabel.Text = "⏳ Cooldown: " .. currentCountdown .. "s"
-		currentCountdown -= 1
-		task.wait(1)
-	end
+    while currentCountdown > 0 do
+        timerLabel.Text = "⏳ Cooldown: " .. currentCountdown .. "s"
+        currentCountdown -= 1
+        task.wait(1)
+    end
 
-	timerLabel.Text = "✅ Ready to Randomize"
-	isCooldown = false
+    timerLabel.Text = "✅ Ready to Randomize"
+    isCooldown = false
 end
 
+-- 🔁 Toggle Auto Roll
 local function toggleAuto()
-	autoRoll = not autoRoll
-	autoToggle.Text = autoRoll and "🟢 Auto Roll: ON" or "⚪ Auto Roll: OFF"
-	if autoRoll then
-		while autoRoll do
-			if not isCooldown then startCooldown() end
-			task.wait(cooldownTime + 1)
-		end
-	end
+    autoRoll = not autoRoll
+    autoToggle.Text = autoRoll and "🟢 Auto Roll: ON" or "⚪ Auto Roll: OFF"
+    if autoRoll then
+        task.spawn(function()
+            while autoRoll do
+                if not isCooldown then startCooldown() end
+                task.wait(cooldownTime + 1)
+            end
+        end)
+    end
 end
 
+-- 🧱 UI Creation
 local function createUI()
-	mainGui = Instance.new("ScreenGui", PlayerGui)
-	mainGui.Name = "EggRandomizerUI"
+    mainGui = Instance.new("ScreenGui", PlayerGui)
+    mainGui.Name = "EggRandomizerUI"
+    mainGui.ResetOnSpawn = false
 
-	local panel = Instance.new("Frame", mainGui)
-	panel.Size = UDim2.new(0, 300, 0, 200)
-	panel.Position = UDim2.new(0.5, -150, 0.3, 0)
-	panel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 10)
+    local panel = Instance.new("Frame", mainGui)
+    panel.Size = UDim2.new(0, 300, 0, 220)
+    panel.Position = UDim2.new(0.4, 0, 0.4, 0)
+    panel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 12)
 
-	local title = Instance.new("TextLabel", panel)
-	title.Size = UDim2.new(1, 0, 0, 30)
-	title.Position = UDim2.new(0, 0, 0, 0)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBlack
-	title.Text = "🥚 Egg Randomizer UI"
-	title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	title.TextScaled = true
+    panel.Active = true
+    panel.Draggable = true
 
-	timerLabel = Instance.new("TextLabel", panel)
-	timerLabel.Size = UDim2.new(1, -20, 0, 25)
-	timerLabel.Position = UDim2.new(0, 10, 0, 40)
-	timerLabel.BackgroundTransparency = 1
-	timerLabel.Font = Enum.Font.Gotham
-	timerLabel.Text = "✅ Ready to Randomize"
-	timerLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-	timerLabel.TextScaled = true
+    local title = Instance.new("TextLabel", panel)
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBlack
+    title.Text = "🎲 Egg Randomizer"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextScaled = true
 
-	local manualBtn = Instance.new("TextButton", panel)
-	manualBtn.Size = UDim2.new(1, -40, 0, 40)
-	manualBtn.Position = UDim2.new(0, 20, 0, 80)
-	manualBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
-	manualBtn.Text = "🔁 Manual Randomize"
-	manualBtn.Font = Enum.Font.GothamBold
-	manualBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	manualBtn.TextScaled = true
-	Instance.new("UICorner", manualBtn).CornerRadius = UDim.new(0, 8)
+    timerLabel = Instance.new("TextLabel", panel)
+    timerLabel.Size = UDim2.new(1, -20, 0, 25)
+    timerLabel.Position = UDim2.new(0, 10, 0, 35)
+    timerLabel.BackgroundTransparency = 1
+    timerLabel.Font = Enum.Font.Gotham
+    timerLabel.Text = "✅ Ready to Randomize"
+    timerLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+    timerLabel.TextScaled = true
 
-	manualBtn.MouseButton1Click:Connect(startCooldown)
+    local manualBtn = Instance.new("TextButton", panel)
+    manualBtn.Size = UDim2.new(1, -40, 0, 40)
+    manualBtn.Position = UDim2.new(0, 20, 0, 70)
+    manualBtn.BackgroundColor3 = Color3.fromRGB(90, 140, 250)
+    manualBtn.Text = "🔁 Manual Randomize"
+    manualBtn.Font = Enum.Font.GothamBold
+    manualBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    manualBtn.TextScaled = true
+    Instance.new("UICorner", manualBtn)
+    manualBtn.MouseButton1Click:Connect(startCooldown)
 
-	autoToggle = Instance.new("TextButton", panel)
-	autoToggle.Size = UDim2.new(1, -40, 0, 40)
-	autoToggle.Position = UDim2.new(0, 20, 0, 130)
-	autoToggle.BackgroundColor3 = Color3.fromRGB(90, 255, 100)
-	autoToggle.Text = "⚪ Auto Roll: OFF"
-	autoToggle.Font = Enum.Font.GothamBold
-	autoToggle.TextColor3 = Color3.fromRGB(0, 0, 0)
-	autoToggle.TextScaled = true
-	Instance.new("UICorner", autoToggle).CornerRadius = UDim.new(0, 8)
+    autoToggle = Instance.new("TextButton", panel)
+    autoToggle.Size = UDim2.new(1, -40, 0, 40)
+    autoToggle.Position = UDim2.new(0, 20, 0, 120)
+    autoToggle.BackgroundColor3 = Color3.fromRGB(120, 255, 100)
+    autoToggle.Text = "⚪ Auto Roll: OFF"
+    autoToggle.Font = Enum.Font.GothamBold
+    autoToggle.TextColor3 = Color3.fromRGB(0, 0, 0)
+    autoToggle.TextScaled = true
+    Instance.new("UICorner", autoToggle)
+    autoToggle.MouseButton1Click:Connect(toggleAuto)
 
-	autoToggle.MouseButton1Click:Connect(toggleAuto)
-
-	local watermark = Instance.new("TextLabel", panel)
-	watermark.Size = UDim2.new(1, 0, 0, 20)
-	watermark.Position = UDim2.new(0, 0, 1, -20)
-	watermark.BackgroundTransparency = 1
-	watermark.Font = Enum.Font.Code
-	watermark.Text = "MADE BY SCRIPT ON TOP HUB SLIMEY"
-	watermark.TextColor3 = Color3.fromRGB(255, 255, 255)
-	watermark.TextScaled = true
+    local watermark = Instance.new("TextLabel", panel)
+    watermark.Size = UDim2.new(1, 0, 0, 20)
+    watermark.Position = UDim2.new(0, 0, 1, -20)
+    watermark.BackgroundTransparency = 1
+    watermark.Font = Enum.Font.Code
+    watermark.Text = "MADE BY SCRIPT ON TOP HUB SLIMEY"
+    watermark.TextColor3 = Color3.fromRGB(255, 255, 255)
+    watermark.TextScaled = true
 end
 
+-- 🔛 Initialize
 scanEggs()
 createUI()
