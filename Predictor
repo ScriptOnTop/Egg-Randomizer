@@ -1,3 +1,4 @@
+-- MADE BY SCRIPT ON TOP HUB SLIMEY
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -19,47 +20,54 @@ local PetLists = {
 }
 
 local rggJackpotPets = {
-	["Raccoon"] = true, ["Red Fox"] = true, ["Dragonfly"] = true, ["Mimic Octopus"] = true,
-	["Queen Bee"] = true, ["Fennec Fox"] = true, ["Butterfly"] = true, ["Disco Bee"] = true, ["T-Rex"] = true
+	["Raccoon"] = true, ["Red Fox"] = true, ["Dragonfly"] = true,
+	["Mimic Octopus"] = true, ["Queen Bee"] = true, ["Fennec Fox"] = true,
+	["Butterfly"] = true, ["Disco Bee"] = true, ["T-Rex"] = true
 }
 
+local autoRoll = false
 local cooldownTime = 30
-local shuffleCooldown = false
+local isCooldown = false
 local currentCountdown = 0
-local gui, timerLabel
+local mainGui, timerLabel, autoToggle
 
 local function getRandomPet(list)
 	return list[math.random(1, #list)]
 end
 
-local function tagEgg(part, eggName)
-	if part:FindFirstChild("EggLabel") then return end
-	local bb = Instance.new("BillboardGui", part)
-	bb.Name = "EggLabel"
-	bb.Adornee = part
-	bb.Size = UDim2.new(0, 140, 0, 90)
-	bb.StudsOffset = Vector3.new(0, 3.5, 0)
-	bb.AlwaysOnTop = true
+local function jackpotNotify()
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0, 300, 0, 50)
+	label.Position = UDim2.new(0.5, -150, 0.5, -100)
+	label.AnchorPoint = Vector2.new(0.5, 0.5)
+	label.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+	label.TextColor3 = Color3.fromRGB(0, 0, 0)
+	label.Text = "🎉 JACKPOT PET 🎉"
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.Parent = PlayerGui
+	task.delay(3, function() if label then label:Destroy() end end)
+end
 
-	local eggText = Instance.new("TextLabel", bb)
-	eggText.Size = UDim2.new(1, 0, 0.33, 0)
-	eggText.Position = UDim2.new(0, 0, 0, 0)
-	eggText.BackgroundTransparency = 1
-	eggText.TextScaled = true
-	eggText.TextColor3 = Color3.fromRGB(70, 255, 70)
-	eggText.Font = Enum.Font.FredokaOne
-	eggText.Text = "🥚 " .. eggName
+local function updateEggPet(part, eggName)
+	local gui = part:FindFirstChild("EggLabel")
+	if not gui then return end
+	local petLabel = gui:FindFirstChild("PetLabel")
+	if not petLabel then return end
 
-	if PetLists[eggName] then
-		local petText = Instance.new("TextLabel", bb)
-		petText.Name = "PetLabel"
-		petText.Size = UDim2.new(1, 0, 0.33, 0)
-		petText.Position = UDim2.new(0, 0, 0.33, 0)
-		petText.BackgroundTransparency = 1
-		petText.TextScaled = true
-		petText.TextColor3 = Color3.fromRGB(255, 255, 255)
-		petText.Font = Enum.Font.GothamBold
-		petText.Text = getRandomPet(PetLists[eggName])
+	local pet = getRandomPet(PetLists[eggName])
+	petLabel.Text = pet
+
+	if rggJackpotPets[pet] then
+		jackpotNotify()
+		task.spawn(function()
+			while isCooldown do
+				petLabel.TextColor3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+				task.wait(0.1)
+			end
+		end)
+	else
+		petLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
 	end
 end
 
@@ -67,133 +75,130 @@ local function scanEggs()
 	for _, obj in ipairs(Workspace:GetDescendants()) do
 		if PetLists[obj.Name] then
 			local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
-			if part then
-				tagEgg(part, obj.Name)
+			if part and not part:FindFirstChild("EggLabel") then
+				local bb = Instance.new("BillboardGui", part)
+				bb.Name = "EggLabel"
+				bb.Adornee = part
+				bb.Size = UDim2.new(0, 120, 0, 70)
+				bb.StudsOffset = Vector3.new(0, 3, 0)
+				bb.AlwaysOnTop = true
+
+				local eggText = Instance.new("TextLabel", bb)
+				eggText.Size = UDim2.new(1, 0, 0.33, 0)
+				eggText.BackgroundTransparency = 1
+				eggText.Text = obj.Name
+				eggText.Font = Enum.Font.GothamBold
+				eggText.TextScaled = true
+				eggText.TextColor3 = Color3.fromRGB(255, 255, 0)
+
+				local petText = Instance.new("TextLabel", bb)
+				petText.Name = "PetLabel"
+				petText.Size = UDim2.new(1, 0, 0.33, 0)
+				petText.Position = UDim2.new(0, 0, 0.33, 0)
+				petText.BackgroundTransparency = 1
+				petText.Font = Enum.Font.GothamBold
+				petText.TextScaled = true
+				petText.TextColor3 = Color3.fromRGB(0, 255, 255)
+				petText.Text = getRandomPet(PetLists[obj.Name])
 			end
 		end
 	end
 end
 
-local function jackpotNotify()
-	local label = Instance.new("TextLabel", PlayerGui)
-	label.Size = UDim2.new(0, 320, 0, 50)
-	label.Position = UDim2.new(0.5, -160, 0.4, -25)
-	label.AnchorPoint = Vector2.new(0.5, 0.5)
-	label.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
-	label.TextColor3 = Color3.fromRGB(0, 0, 0)
-	label.Font = Enum.Font.GothamBlack
-	label.Text = "🎉 JACKPOT PET FOUND!"
-	label.TextScaled = true
-	Instance.new("UICorner", label).CornerRadius = UDim.new(0, 8)
-
-	task.delay(2.5, function()
-		label:Destroy()
-	end)
-end
-
-local function startCooldown(button)
-	if shuffleCooldown then return end
-	shuffleCooldown = true
+local function startCooldown()
+	if isCooldown then return end
+	isCooldown = true
 	currentCountdown = cooldownTime
 
 	for _, obj in ipairs(Workspace:GetDescendants()) do
 		if PetLists[obj.Name] then
 			local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
-			if part then
-				local gui = part:FindFirstChild("EggLabel")
-				if gui and gui:FindFirstChild("PetLabel") then
-					local newPet = getRandomPet(PetLists[obj.Name])
-					gui.PetLabel.Text = newPet
-					gui.PetLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-					if rggJackpotPets[newPet] then
-						task.spawn(function()
-							while gui and gui:FindFirstChild("PetLabel") and shuffleCooldown do
-								gui.PetLabel.TextColor3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
-								task.wait(0.05)
-							end
-						end)
-						jackpotNotify()
-					end
-				end
-			end
+			if part then updateEggPet(part, obj.Name) end
 		end
 	end
 
 	while currentCountdown > 0 do
-		timerLabel.Text = "🕒 " .. currentCountdown .. "s before next reshuffle"
+		timerLabel.Text = "⏳ Cooldown: " .. currentCountdown .. "s"
 		currentCountdown -= 1
 		task.wait(1)
 	end
 
-	timerLabel.Text = "✅ Ready to reshuffle pets"
-	shuffleCooldown = false
+	timerLabel.Text = "✅ Ready to Randomize"
+	isCooldown = false
+end
+
+local function toggleAuto()
+	autoRoll = not autoRoll
+	autoToggle.Text = autoRoll and "🟢 Auto Roll: ON" or "⚪ Auto Roll: OFF"
+	if autoRoll then
+		while autoRoll do
+			if not isCooldown then startCooldown() end
+			task.wait(cooldownTime + 1)
+		end
+	end
 end
 
 local function createUI()
-	gui = Instance.new("ScreenGui", PlayerGui)
-	gui.Name = "GardenUI"
+	mainGui = Instance.new("ScreenGui", PlayerGui)
+	mainGui.Name = "EggRandomizerUI"
 
-	local bgFrame = Instance.new("Frame", gui)
-	bgFrame.Size = UDim2.new(0, 280, 0, 160)
-	bgFrame.Position = UDim2.new(0, 30, 1, -200)
-	bgFrame.BackgroundColor3 = Color3.fromRGB(50, 150, 90)
-	Instance.new("UICorner", bgFrame).CornerRadius = UDim.new(0, 12)
+	local panel = Instance.new("Frame", mainGui)
+	panel.Size = UDim2.new(0, 300, 0, 200)
+	panel.Position = UDim2.new(0.5, -150, 0.3, 0)
+	panel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 10)
 
-	timerLabel = Instance.new("TextLabel", bgFrame)
-	timerLabel.Size = UDim2.new(1, -20, 0, 40)
-	timerLabel.Position = UDim2.new(0, 10, 0, 10)
+	local title = Instance.new("TextLabel", panel)
+	title.Size = UDim2.new(1, 0, 0, 30)
+	title.Position = UDim2.new(0, 0, 0, 0)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.GothamBlack
+	title.Text = "🥚 Egg Randomizer UI"
+	title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	title.TextScaled = true
+
+	timerLabel = Instance.new("TextLabel", panel)
+	timerLabel.Size = UDim2.new(1, -20, 0, 25)
+	timerLabel.Position = UDim2.new(0, 10, 0, 40)
 	timerLabel.BackgroundTransparency = 1
-	timerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	timerLabel.Font = Enum.Font.GothamBold
+	timerLabel.Font = Enum.Font.Gotham
+	timerLabel.Text = "✅ Ready to Randomize"
+	timerLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
 	timerLabel.TextScaled = true
-	timerLabel.Text = "✅ Ready to reshuffle pets"
 
-	local button = Instance.new("TextButton", bgFrame)
-	button.Size = UDim2.new(1, -40, 0, 45)
-	button.Position = UDim2.new(0, 20, 0, 70)
-	button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	button.TextColor3 = Color3.fromRGB(0, 128, 70)
-	button.Font = Enum.Font.GothamBold
-	button.TextScaled = true
-	button.Text = "🔁 Shuffle Pets"
-	Instance.new("UICorner", button).CornerRadius = UDim.new(0, 10)
+	local manualBtn = Instance.new("TextButton", panel)
+	manualBtn.Size = UDim2.new(1, -40, 0, 40)
+	manualBtn.Position = UDim2.new(0, 20, 0, 80)
+	manualBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+	manualBtn.Text = "🔁 Manual Randomize"
+	manualBtn.Font = Enum.Font.GothamBold
+	manualBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	manualBtn.TextScaled = true
+	Instance.new("UICorner", manualBtn).CornerRadius = UDim.new(0, 8)
 
-	button.MouseButton1Click:Connect(function()
-		startCooldown(button)
-	end)
+	manualBtn.MouseButton1Click:Connect(startCooldown)
+
+	autoToggle = Instance.new("TextButton", panel)
+	autoToggle.Size = UDim2.new(1, -40, 0, 40)
+	autoToggle.Position = UDim2.new(0, 20, 0, 130)
+	autoToggle.BackgroundColor3 = Color3.fromRGB(90, 255, 100)
+	autoToggle.Text = "⚪ Auto Roll: OFF"
+	autoToggle.Font = Enum.Font.GothamBold
+	autoToggle.TextColor3 = Color3.fromRGB(0, 0, 0)
+	autoToggle.TextScaled = true
+	Instance.new("UICorner", autoToggle).CornerRadius = UDim.new(0, 8)
+
+	autoToggle.MouseButton1Click:Connect(toggleAuto)
+
+	local watermark = Instance.new("TextLabel", panel)
+	watermark.Size = UDim2.new(1, 0, 0, 20)
+	watermark.Position = UDim2.new(0, 0, 1, -20)
+	watermark.BackgroundTransparency = 1
+	watermark.Font = Enum.Font.Code
+	watermark.Text = "MADE BY SCRIPT ON TOP HUB SLIMEY"
+	watermark.TextColor3 = Color3.fromRGB(255, 255, 255)
+	watermark.TextScaled = true
 end
 
--- 🌱 Toggle UI button
-local toggleUI = Instance.new("ScreenGui", PlayerGui)
-toggleUI.Name = "GardenToggle"
-
-local toggleBtn = Instance.new("TextButton", toggleUI)
-toggleBtn.Size = UDim2.new(0, 130, 0, 40)
-toggleBtn.Position = UDim2.new(1, -140, 0.5, -20)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleBtn.Font = Enum.Font.GothamBlack
-toggleBtn.TextScaled = true
-toggleBtn.Text = "🌼 Toggle Garden"
-Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 10)
-
-local active = false
-toggleBtn.MouseButton1Click:Connect(function()
-	active = not active
-	if active then
-		if not gui then createUI() end
-		gui.Enabled = true
-		if not _G._gardenScan then
-			_G._gardenScan = RunService.Heartbeat:Connect(function()
-				pcall(scanEggs)
-			end)
-		end
-	else
-		gui.Enabled = false
-		if _G._gardenScan then
-			_G._gardenScan:Disconnect()
-			_G._gardenScan = nil
-		end
-	end
-end)
+scanEggs()
+createUI()
