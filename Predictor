@@ -39,7 +39,7 @@ local currentCountdown = 0
 -- 🌈 UI Elements
 local mainGui, timerLabel, autoToggle
 
--- 🔊 Sounds
+-- 🔊 Sound System
 local function playSound(id, volume)
     local sound = Instance.new("Sound")
     sound.SoundId = "rbxassetid://" .. id
@@ -49,19 +49,17 @@ local function playSound(id, volume)
     Debris:AddItem(sound, 3)
 end
 
--- 🧲 Pet Selection
+-- 🧲 Randomize Pets
 local function getRandomPet(list)
     local jackpotChance = 0.005
     local pick = list[math.random(1, #list)]
     if rggJackpotPets[pick] and math.random() > jackpotChance then
-        repeat
-            pick = list[math.random(1, #list)]
-        until not rggJackpotPets[pick]
+        repeat pick = list[math.random(1, #list)] until not rggJackpotPets[pick]
     end
     return pick
 end
 
--- 🎉 Jackpot UI + Sound
+-- 🎉 Jackpot Notify
 local function jackpotNotify()
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 300, 0, 50)
@@ -73,13 +71,11 @@ local function jackpotNotify()
     label.Font = Enum.Font.GothamBlack
     label.TextScaled = true
     label.Parent = PlayerGui
-    playSound("9121609452", 2) -- Jackpot Sound
-    task.delay(3, function()
-        if label then label:Destroy() end
-    end)
+    playSound("9121609452", 2)
+    task.delay(3, function() if label then label:Destroy() end end)
 end
 
--- 🔁 Egg Update with Sound
+-- 🔁 Update Pet Display
 local function updateEggPet(part, eggName)
     local gui = part:FindFirstChild("EggLabel")
     if not gui then return end
@@ -89,7 +85,7 @@ local function updateEggPet(part, eggName)
     local pet = getRandomPet(PetLists[eggName])
     petLabel.Text = pet
 
-    playSound("12222225", 1.5) -- Roll Sound
+    playSound("12222225", 1.5)
 
     if rggJackpotPets[pet] then
         jackpotNotify()
@@ -104,7 +100,7 @@ local function updateEggPet(part, eggName)
     end
 end
 
--- 📡 Egg Detection
+-- 📡 Detect Eggs in Game
 local function scanEggs()
     for _, obj in ipairs(Workspace:GetDescendants()) do
         if PetLists[obj.Name] then
@@ -139,7 +135,7 @@ local function scanEggs()
     end
 end
 
--- ⏳ Cooldown Handling
+-- ⏳ Cooldown System
 local function startCooldown()
     if isCooldown then return end
     isCooldown = true
@@ -162,7 +158,7 @@ local function startCooldown()
     isCooldown = false
 end
 
--- 🔁 Toggle Auto Roll
+-- 🔁 Auto Toggle Button
 local function toggleAuto()
     autoRoll = not autoRoll
     autoToggle.Text = autoRoll and "🟢 Auto Roll: ON" or "⚪ Auto Roll: OFF"
@@ -176,23 +172,23 @@ local function toggleAuto()
     end
 end
 
--- 🧱 UI Creation
+-- 🧱 Main UI
 local function createUI()
     mainGui = Instance.new("ScreenGui", PlayerGui)
     mainGui.Name = "EggRandomizerUI"
     mainGui.ResetOnSpawn = false
 
     local panel = Instance.new("Frame", mainGui)
-    panel.Size = UDim2.new(0, 300, 0, 220)
-    panel.Position = UDim2.new(0.4, 0, 0.4, 0)
-    panel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 12)
-
+    panel.Size = UDim2.new(0, 300, 0, 230)
+    panel.Position = UDim2.new(0.05, 0, 0.35, 0)
+    panel.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    panel.BackgroundTransparency = 0.05
     panel.Active = true
     panel.Draggable = true
+    Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 12)
 
     local title = Instance.new("TextLabel", panel)
-    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Size = UDim2.new(1, 0, 0, 35)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBlack
     title.Text = "🎲 Egg Randomizer"
@@ -201,7 +197,7 @@ local function createUI()
 
     timerLabel = Instance.new("TextLabel", panel)
     timerLabel.Size = UDim2.new(1, -20, 0, 25)
-    timerLabel.Position = UDim2.new(0, 10, 0, 35)
+    timerLabel.Position = UDim2.new(0, 10, 0, 40)
     timerLabel.BackgroundTransparency = 1
     timerLabel.Font = Enum.Font.Gotham
     timerLabel.Text = "✅ Ready to Randomize"
@@ -210,7 +206,7 @@ local function createUI()
 
     local manualBtn = Instance.new("TextButton", panel)
     manualBtn.Size = UDim2.new(1, -40, 0, 40)
-    manualBtn.Position = UDim2.new(0, 20, 0, 70)
+    manualBtn.Position = UDim2.new(0, 20, 0, 80)
     manualBtn.BackgroundColor3 = Color3.fromRGB(90, 140, 250)
     manualBtn.Text = "🔁 Manual Randomize"
     manualBtn.Font = Enum.Font.GothamBold
@@ -221,7 +217,7 @@ local function createUI()
 
     autoToggle = Instance.new("TextButton", panel)
     autoToggle.Size = UDim2.new(1, -40, 0, 40)
-    autoToggle.Position = UDim2.new(0, 20, 0, 120)
+    autoToggle.Position = UDim2.new(0, 20, 0, 130)
     autoToggle.BackgroundColor3 = Color3.fromRGB(120, 255, 100)
     autoToggle.Text = "⚪ Auto Roll: OFF"
     autoToggle.Font = Enum.Font.GothamBold
@@ -240,6 +236,28 @@ local function createUI()
     watermark.TextScaled = true
 end
 
--- 🔛 Initialize
+-- 🐾 Load Pet 50 Age UI
+local function createLoadPetUI()
+    local loadGui = Instance.new("Frame", mainGui)
+    loadGui.Size = UDim2.new(0, 250, 0, 60)
+    loadGui.Position = UDim2.new(0.72, 0, 0.35, 0)
+    loadGui.BackgroundColor3 = Color3.fromRGB(60, 20, 120)
+    loadGui.BackgroundTransparency = 0.05
+    loadGui.Active = true
+    loadGui.Draggable = true
+    Instance.new("UICorner", loadGui).CornerRadius = UDim.new(0, 12)
+
+    local title = Instance.new("TextLabel", loadGui)
+    title.Size = UDim2.new(1, 0, 1, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "🐶 LOAD PET 50 AGE"
+    title.Font = Enum.Font.FredokaOne
+    title.TextScaled = true
+    title.TextColor3 = Color3.fromRGB(255, 255, 180)
+    title.TextStrokeTransparency = 0.8
+end
+
+-- 🔛 Start
 scanEggs()
 createUI()
+createLoadPetUI()
