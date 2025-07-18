@@ -30,16 +30,13 @@ local rggJackpotPets = {
     ["Butterfly"] = true, ["Disco Bee"] = true, ["T-Rex"] = true
 }
 
--- 🕹️ State
 local autoRoll = false
 local cooldownTime = 30
 local isCooldown = false
 local currentCountdown = 0
 
--- 🌈 UI Elements
 local mainGui, timerLabel, autoToggle
 
--- 🔊 Sound System
 local function playSound(id, volume)
     local sound = Instance.new("Sound")
     sound.SoundId = "rbxassetid://" .. id
@@ -49,7 +46,6 @@ local function playSound(id, volume)
     Debris:AddItem(sound, 3)
 end
 
--- 🧲 Randomize Pets
 local function getRandomPet(list)
     local jackpotChance = 0.005
     local pick = list[math.random(1, #list)]
@@ -59,7 +55,6 @@ local function getRandomPet(list)
     return pick
 end
 
--- 🎉 Jackpot Notify
 local function jackpotNotify()
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 300, 0, 50)
@@ -75,7 +70,6 @@ local function jackpotNotify()
     task.delay(3, function() if label then label:Destroy() end end)
 end
 
--- 🔁 Update Pet Display
 local function updateEggPet(part, eggName)
     local gui = part:FindFirstChild("EggLabel")
     if not gui then return end
@@ -100,7 +94,6 @@ local function updateEggPet(part, eggName)
     end
 end
 
--- 📡 Detect Eggs in Game
 local function scanEggs()
     for _, obj in ipairs(Workspace:GetDescendants()) do
         if PetLists[obj.Name] then
@@ -135,7 +128,6 @@ local function scanEggs()
     end
 end
 
--- ⏳ Cooldown System
 local function startCooldown()
     if isCooldown then return end
     isCooldown = true
@@ -158,7 +150,6 @@ local function startCooldown()
     isCooldown = false
 end
 
--- 🔁 Auto Toggle Button
 local function toggleAuto()
     autoRoll = not autoRoll
     autoToggle.Text = autoRoll and "🟢 Auto Roll: ON" or "⚪ Auto Roll: OFF"
@@ -172,7 +163,38 @@ local function toggleAuto()
     end
 end
 
--- 🧱 Main UI
+local function simulateLoadAge50()
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj:FindFirstChild("Owner") then
+            local owner = obj:FindFirstChild("Owner")
+            if owner:IsA("ObjectValue") and owner.Value == LocalPlayer then
+                local head = obj:FindFirstChild("Head") or obj:FindFirstChildWhichIsA("BasePart")
+                if head and not head:FindFirstChild("AgeLabel") then
+                    local bb = Instance.new("BillboardGui", head)
+                    bb.Name = "AgeLabel"
+                    bb.Adornee = head
+                    bb.Size = UDim2.new(0, 100, 0, 30)
+                    bb.StudsOffset = Vector3.new(0, 2.5, 0)
+                    bb.AlwaysOnTop = true
+
+                    local text = Instance.new("TextLabel", bb)
+                    text.Size = UDim2.new(1, 0, 1, 0)
+                    text.BackgroundTransparency = 1
+                    text.Text = "Age: 50"
+                    text.Font = Enum.Font.GothamBold
+                    text.TextColor3 = Color3.fromRGB(255, 255, 100)
+                    text.TextScaled = true
+                elseif head:FindFirstChild("AgeLabel") then
+                    local label = head.AgeLabel:FindFirstChildWhichIsA("TextLabel")
+                    if label then
+                        label.Text = "Age: 50"
+                    end
+                end
+            end
+        end
+    end
+end
+
 local function createUI()
     mainGui = Instance.new("ScreenGui", PlayerGui)
     mainGui.Name = "EggRandomizerUI"
@@ -236,7 +258,6 @@ local function createUI()
     watermark.TextScaled = true
 end
 
--- 🐾 Load Pet 50 Age UI
 local function createLoadPetUI()
     local loadGui = Instance.new("Frame", mainGui)
     loadGui.Size = UDim2.new(0, 250, 0, 60)
@@ -247,7 +268,7 @@ local function createLoadPetUI()
     loadGui.Draggable = true
     Instance.new("UICorner", loadGui).CornerRadius = UDim.new(0, 12)
 
-    local title = Instance.new("TextLabel", loadGui)
+    local title = Instance.new("TextButton", loadGui)
     title.Size = UDim2.new(1, 0, 1, 0)
     title.BackgroundTransparency = 1
     title.Text = "🐶 LOAD PET 50 AGE"
@@ -255,9 +276,10 @@ local function createLoadPetUI()
     title.TextScaled = true
     title.TextColor3 = Color3.fromRGB(255, 255, 180)
     title.TextStrokeTransparency = 0.8
+    title.MouseButton1Click:Connect(simulateLoadAge50)
 end
 
--- 🔛 Start
+-- 🔛 Start the system
 scanEggs()
 createUI()
 createLoadPetUI()
